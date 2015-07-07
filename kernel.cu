@@ -22,7 +22,25 @@ cout<<"n and nnz"<<endl;
 
 cin<<n<<nnz;
 
-//
+
+double *result=new double[n];
+//input
+
+File *file;
+fopen(file,"sysb.txt","r");
+
+double *vectors=vector_insert(n,file);
+
+
+//cuda alloc
+
+
+
+
+
+
+// solve
+
 
 
 
@@ -33,7 +51,11 @@ return 0;
 
 //cuda function
 
-
+void solve(){
+  
+  
+  
+}
 
 /// 입출력
 
