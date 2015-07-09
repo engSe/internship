@@ -12,7 +12,7 @@
 #include <time.h>
 
 template <typename> vector_insert(int n,ifstream file,T a);
-void vector_output(double * vectors,string filename);
+void vector_output(int n, double * vectors,string filename);
 
 
 using namespace std;
@@ -61,13 +61,18 @@ csrval=vector_insert(nnz,finVAL,dou);
 //cuda alloc
 
   unsigned int* dCol, *dRow;
-	double* dVal;
+	double* dVal,dbvec,dx;
   cudaError_t error;
 
+	cudatMalloc((void**)&dx,sizeof(double)*n);
+	cudatMalloc((void**)&dbvec,sizeof(double)*n);
 	cudaMalloc((void**)&dCol, sizeof(int)*nnz);
 	cudaMalloc((void**)&dRow, sizeof(int)*(n + 1));
 	cudaMalloc((void**)&dVal, sizeof(double)*nnz);
 	
+	
+
+	cudaMemcpy(dbvec,bvec,sizeof(double)*n,cudaMemcpyHostToDevice);
 	cudaMemcpy(dCol, colidx, sizeof(int)*nnz, cudaMemcpyHostToDevice);
 	cudaMemcpy(dRow, rowPtr, sizeof(int)*(n + 1), cudaMemcpyHostToDevice);
 	cudaMemcpy(dVal, csrval, sizeof(double)*nnz, cudaMemcpyHostToDevice);
@@ -85,9 +90,35 @@ csrval=vector_insert(nnz,finVAL,dou);
 	cusolver_status = cusolverSpCreate(&cusolver_handle);
 	std::cout << "status cusolverSpCreate: " << cusolver_status << std::endl;
 // solve
+cudaDeviceSynchronize();
+
+	tol=1e-6;
+	solve(nnz, n, tol, dVal, dCol, dRow, dbvec, dx);
+
+	error = cudaGetLastError();
+	std::cout << "Error status after solve(): " << error << std::endl;
+
+cudaDeviceSynchronize();
 
 
 
+// return
+
+
+cudaMemcpy(result,dx,n*sizeof(double),cudaMemcpyDeviceToHost);
+
+
+// OUTPUT
+
+vector_output(n,result,"x_val.txt");
+
+//free
+
+cudaFree(dCOL);
+cudaFree(dROW);
+cudaFree(dx);
+cudaFree(dbvec);
+cudaFree(dVal);
 
 
 return 0;
@@ -96,21 +127,37 @@ return 0;
 
 //cuda function
 
-void solve(){
+void solve(int nnz,int  n,double tol,double* dVal,double* dCol,double * dRow,double* dbvec,double* dx){
   
   
-  
+  // --- prepare solving and copy to GPU:
+	int reorder = 0;
+	int singularity = 0;
+
+	// create matrix descriptor
+	cusparseMatDescr_t descrA;
+	cusparse_status = cusparseCreateMatDescr(&descrA);
+	std::cout << "status cusparse createMatDescr: " << cusparse_status << std::endl;
+
+	cudaDeviceSynchronize();
+
+	//solve the system
+	cusolver_status = cusolverSpDcsrlsvqr(cusolver_handle, m, nnz, descrA, dcsrVal,
+		dcsrRowPtr, dcsrColInd, db, tol, reorder, dx,
+		&singularity);
+
+	cudaDeviceSynchronize();
 }
 
 /// 입출력
-void vector_output(double * vectors,string filename){
+void vector_output(int n, double * vectors,string filename){
 	
 	ofstream file(filename);
 	int i=0;
-	while(vectors)
+	while(i<n)
 	{
-		file<<vectors;
-		vectors++;
+		file<<vectors[i];
+		i++;
 	}
 }
 template <typename T>
