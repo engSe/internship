@@ -17,7 +17,8 @@ using namespace std;
 template <typename T>
 T* vector_insert(int n, string filename, T a);
 
-void vector_output(int n, double * vectors, string filename);
+template <typename T>
+void vector_output(int n, T * vectors, string filename);
 
 int main(){
 
@@ -72,8 +73,8 @@ int main(){
 
 	colidx = vector_insert(nnz, finCOL, uint);
 	csrval = vector_insert(nnz, finVAL, dou);
-
-
+	
+	cout << "?" << rowPtr[10] << endl;
 	clock_t insert=clock();
 
 	cout << "insert t : " << insert - init<<endl;
@@ -155,7 +156,7 @@ int main(){
 	// OUTPUT
 
 	vector_output(n, result, outtxt);
-	vector_output(n, (double*)rowPtr, "ex_row.txt");
+	vector_output(n, rowPtr, "ex_row.txt");
 
 	clock_t output=clock();
 	cout << "out t : " << output - solv << endl;
@@ -179,11 +180,17 @@ int main(){
 
 
 /// 입출력
-void vector_output(int n, double * vectors, string filename){
+template <typename T>
+void vector_output(int n, T * vectors, string filename){
 
 	ofstream file(filename);
+	if (!file)
+	{
+		cout << "file output error" << endl;
+
+	}
 	int i = 0;
-	while (i<n)
+	while (i<n&&file)
 	{
 		file << vectors[i]<<'\n';
 		i++;
