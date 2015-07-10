@@ -51,17 +51,20 @@ int main(){
 	clock_t start=clock();
 	cout << 't' << start - init << endl;
 
-	/*string finb = "sysb.mat";
+	string finb = "sysb.mat";
 	string finROW = "rowPtr.mat";
 	string finCOL = "colidx.mat";
 	string finVAL = "val.mat";
-*/
+	string outtxt = "x_val.txt";
 
-	string finb = "ex_b.mat";
-	string finROW = "ex_row.mat";
-	string finCOL = "ex_col.mat";
-	string finVAL = "ex_val.mat";
-	string outtxt = "ex_x_val.txt";
+	//string finb = "ex_b.mat";
+	//string finROW = "ex_row.mat";
+	//string finCOL = "ex_col.mat";
+	//string finVAL = "ex_val.mat";
+	//string outtxt = "ex_x_val.txt";
+	
+	
+	
 	double dou = 1.0;
 	int uint = 1;
 
@@ -156,7 +159,7 @@ int main(){
 	// OUTPUT
 
 	vector_output(n, result, outtxt);
-	vector_output(n, rowPtr, "ex_row.txt");
+	
 
 	clock_t output=clock();
 	cout << "out t : " << output - solv << endl;
@@ -201,7 +204,7 @@ template <typename T>
 T* vector_insert(int n, string filename, T a){
 
 	ifstream file;
-	file.open( filename);
+	file.open(filename);
 
 	if (!file)
 	{
@@ -211,10 +214,13 @@ T* vector_insert(int n, string filename, T a){
 
 	T *vectors = new T[n];
 	int i = 0;
-	while (i<n &&file){
-		file >> vectors[i];
+	double in;
+	while (i<n){
+		file >> in;
+		vectors[i] = (T)in;
 		i++;
 	}
+	if (i != n)cout << "input suspended" << endl;
 
 	file.close();
 	return vectors;
